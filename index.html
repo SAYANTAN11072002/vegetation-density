@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Vegetation Density · Indian Sundarban</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            color: #eef4ff;
+            padding: 2rem 1.8rem 3rem;
+            line-height: 1.5;
+        }
+
+        .main-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .main-heading {
+            font-size: 2.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d0f0e0, #88c0a0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            border-left: 6px solid #2e8b57;
+            padding-left: 1.3rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .abstract-section {
+            margin: 1rem 0 2rem 0;
+            background: #11161c;
+            border-radius: 28px;
+            padding: 1.4rem 2rem;
+            border: 1px solid #2a4a3a;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .abstract-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #b3e4c6;
+            border-left: 4px solid #2e8b57;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        .abstract-text {
+            font-size: 1rem;
+            color: #cddfe7;
+            text-align: justify;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+            justify-content: center;
+        }
+        .viz-card {
+            flex: 1;
+            min-width: 280px;
+            max-width: 480px;
+            background: #0e1118;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.6);
+            border: 1px solid #2a423a;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .viz-card:hover {
+            transform: translateY(-5px);
+            border-color: #3e9a72;
+        }
+
+        .card-header {
+            background: #070a0f;
+            padding: 0.75rem 1.2rem;
+            border-bottom: 1px solid #1f332b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .year-dropdown-btn {
+            background: #16232a;
+            border: 1px solid #3c7a5e;
+            color: #e2f0ea;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .year-dropdown-btn:hover {
+            background: #2c5e48;
+            border-color: #6bb59a;
+        }
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .zoom-btn {
+            background: #1c2529;
+            border: 1px solid #3a6b58;
+            color: #e2f0ea;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .zoom-btn:hover {
+            background: #2c4e3e;
+        }
+
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            background: #010101;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 280px;
+            max-height: 380px;
+            cursor: zoom-in;
+        }
+        .zoomable-img {
+            width: 100%;
+            height: auto;
+            max-height: 360px;
+            object-fit: contain;
+            transition: transform 0.2s ease;
+            display: block;
+        }
+        .card-caption {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 0.5rem;
+            background: #030608;
+            color: #7aa692;
+            border-top: 1px solid #1e2f28;
+        }
+
+        .custom-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            background: #10181e;
+            backdrop-filter: blur(12px);
+            background-color: rgba(8, 12, 18, 0.98);
+            border: 1px solid #3c7a5e;
+            border-radius: 20px;
+            min-width: 150px;
+            z-index: 200;
+            box-shadow: 0 18px 28px -8px black;
+            overflow: hidden;
+        }
+        .dropdown-option {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #dcf5ea;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid #253e35;
+        }
+        .dropdown-option:last-child {
+            border-bottom: none;
+        }
+        .dropdown-option:hover {
+            background: #2b634b;
+            padding-left: 22px;
+        }
+
+        @media (max-width: 900px) {
+            .row { gap: 1rem; }
+            .viz-card { min-width: 260px; }
+        }
+        @media (max-width: 700px) {
+            .row { flex-direction: column; align-items: center; }
+            .viz-card { width: 100%; max-width: 500px; }
+        }
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #5e8b78;
+            border-top: 1px solid #1e2d26;
+            padding-top: 1.8rem;
+        }
+        ::-webkit-scrollbar { width: 6px; background: #101010; }
+        ::-webkit-scrollbar-thumb { background: #2f6e54; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <h1 class="main-heading">VEGETATION DENSITY OF INDIAN SUNDARBAN</h1>
+
+    <div class="abstract-section">
+        <div class="abstract-title">📄 ABSTRACT</div>
+        <div class="abstract-text">
+            The Indian Sundarban, a UNESCO World Heritage site, hosts one of the world's largest mangrove ecosystems. 
+            Vegetation density is a critical indicator of forest health, carbon stock, and biodiversity. 
+            This study analyses multi‑temporal satellite-derived vegetation indices (NDVI, EVI) to map density 
+            changes from 1991 to 2022. The interactive visualisation below uses a column‑wise cascade: 
+            selecting a year in a top box updates its entire column with corresponding LISA, SIG, SP, and T images.
+        </div>
+    </div>
+
+    <div class="grid-container" id="gridRoot"></div>
+    <footer>🌿 Each box has Zoom In/Out (click image to reset). Top row buttons update their entire column with LISA, SIG, SP, T images.</footer>
+</div>
+
+<script>
+    // ----- Configuration -----
+    const YEAR_OPTIONS = ["1991", "2001", "2009", "2011", "2018", "2019", "2020", "2021", "2022"];
+    const ROWS = 5;
+    const COLS = 3;
+
+    // File naming patterns for each row position within a column (0-indexed row)
+    // row 0 (top): VD images
+    // row 1: LISA
+    // row 2: SIG
+    // row 3: SP
+    // row 4: T
+    function getImageForPosition(col, row, year) {
+        // col: 0,1,2 ; row: 0..4
+        if (row === 0) return `VD${year}.jpg`;
+        if (row === 1) return `LISA${year}.png`;
+        if (row === 2) return `SIG${year}.png`;
+        if (row === 3) return `SP${year}.png`;
+        if (row === 4) return `T${year}.png`;
+        return null;
+    }
+
+    // Helper: generate a placeholder data URL for missing images or fallback
+    function generatePlaceholderImage(label) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 500;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#0a2a1f';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#c8f0e0';
+        ctx.font = 'bold 28px "Segoe UI"';
+        ctx.textAlign = 'center';
+        ctx.fillText(`🌿 VEGETATION DENSITY`, canvas.width/2, 80);
+        ctx.font = '20px monospace';
+        ctx.fillStyle = '#e0ffd0';
+        ctx.fillText(`${label}`, canvas.width/2, 160);
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = '#8aae9a';
+        ctx.fillText(`(image not found)`, canvas.width/2, 310);
+        return canvas.toDataURL();
+    }
+
+    // Zoom logic (same as before)
+    function attachZoom(imgElement, container) {
+        let currentScale = 1;
+        const minScale = 0.6;
+        const maxScale = 3.2;
+        const step = 0.2;
+
+        const zoomInBtn = document.createElement('button');
+        zoomInBtn.className = 'zoom-btn';
+        zoomInBtn.textContent = '🔍 Zoom In';
+        const zoomOutBtn = document.createElement('button');
+        zoomOutBtn.className = 'zoom-btn';
+        zoomOutBtn.textContent = '🔍 Zoom Out';
+
+        function applyZoom() {
+            imgElement.style.transform = `scale(${currentScale})`;
+            if (currentScale > 1) {
+                container.style.overflow = 'auto';
+                container.style.cursor = 'grab';
+            } else {
+                container.style.overflow = 'hidden';
+                container.style.cursor = 'zoom-in';
+            }
+        }
+
+        zoomInBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentScale < maxScale) {
+                currentScale = Math.min(maxScale, currentScale + 0.2);
+                applyZoom();
+            }
+        });
+
+        zoomOutBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentScale > minScale) {
+                currentScale = Math.max(minScale, currentScale - 0.2);
+                applyZoom();
+            }
+        });
+
+        imgElement.addEventListener('click', () => {
+            currentScale = 1;
+            applyZoom();
+        });
+
+        return { zoomInBtn, zoomOutBtn };
+    }
+
+    // Build the grid and store references to all image elements
+    const gridRoot = document.getElementById('gridRoot');
+    if (!gridRoot) throw new Error('No grid root');
+
+    // 2D array to hold image elements: images[col][row] (col 0..2, row 0..4)
+    const images = [[], [], []];
+    // Also store zoom containers if needed but not necessary
+
+    for (let row = 0; row < ROWS; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'row';
+
+        for (let col = 0; col < COLS; col++) {
+            const boxIndex = row * COLS + col;
+            const isTopRow = (row === 0);
+
+            const card = document.createElement('div');
+            card.className = 'viz-card';
+
+            const header = document.createElement('div');
+            header.className = 'card-header';
+
+            const leftControl = document.createElement('div');
+
+            if (isTopRow) {
+                // Year button for each column's top box
+                const yearBtn = document.createElement('button');
+                yearBtn.className = 'year-dropdown-btn';
+                yearBtn.textContent = `📅 YEAR (${YEAR_OPTIONS[0]})`;
+                let activeDropdown = null;
+
+                yearBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (activeDropdown) {
+                        activeDropdown.remove();
+                        activeDropdown = null;
+                        return;
+                    }
+                    document.querySelectorAll('.custom-dropdown').forEach(dd => dd.remove());
+                    const dropdownDiv = document.createElement('div');
+                    dropdownDiv.className = 'custom-dropdown';
+                    YEAR_OPTIONS.forEach(yr => {
+                        const opt = document.createElement('div');
+                        opt.className = 'dropdown-option';
+                        opt.textContent = yr;
+                        opt.addEventListener('click', (e2) => {
+                            e2.stopPropagation();
+                            yearBtn.textContent = `📅 YEAR (${yr})`;
+                            // Update the entire column for this year
+                            for (let r = 0; r < ROWS; r++) {
+                                const imgElement = images[col][r];
+                                if (imgElement) {
+                                    const filename = getImageForPosition(col, r, yr);
+                                    if (filename) {
+                                        imgElement.src = filename;
+                                        imgElement.onerror = () => {
+                                            imgElement.src = generatePlaceholderImage(`Missing: ${filename}`);
+                                        };
+                                    } else {
+                                        imgElement.src = generatePlaceholderImage(`Row ${r+1}`);
+                                    }
+                                }
+                            }
+                            dropdownDiv.remove();
+                            activeDropdown = null;
+                        });
+                        dropdownDiv.appendChild(opt);
+                    });
+                    const rect = yearBtn.getBoundingClientRect();
+                    dropdownDiv.style.position = 'absolute';
+                    dropdownDiv.style.top = `${rect.bottom + window.scrollY}px`;
+                    dropdownDiv.style.left = `${rect.left + window.scrollX}px`;
+                    document.body.appendChild(dropdownDiv);
+                    activeDropdown = dropdownDiv;
+                    const closeHandler = (e) => {
+                        if (!dropdownDiv.contains(e.target) && e.target !== yearBtn) {
+                            dropdownDiv.remove();
+                            activeDropdown = null;
+                            document.removeEventListener('click', closeHandler);
+                        }
+                    };
+                    setTimeout(() => document.addEventListener('click', closeHandler), 10);
+                });
+                leftControl.appendChild(yearBtn);
+            } else {
+                const label = document.createElement('span');
+                label.style.fontSize = '0.85rem';
+                label.style.fontWeight = '500';
+                label.textContent = `🌲 Density Map ${boxIndex+1}`;
+                leftControl.appendChild(label);
+            }
+
+            const zoomControlsDiv = document.createElement('div');
+            zoomControlsDiv.className = 'zoom-controls';
+            header.appendChild(leftControl);
+            header.appendChild(zoomControlsDiv);
+
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'image-container';
+            const img = document.createElement('img');
+            img.className = 'zoomable-img';
+            img.alt = `Vegetation density ${boxIndex+1}`;
+
+            // Set initial image based on row and column
+            const initialYear = YEAR_OPTIONS[0]; // 1991
+            const initialFile = getImageForPosition(col, row, initialYear);
+            if (initialFile) {
+                img.src = initialFile;
+                img.onerror = () => {
+                    img.src = generatePlaceholderImage(`Missing: ${initialFile}`);
+                };
+            } else {
+                img.src = generatePlaceholderImage(`Box ${boxIndex+1}`);
+            }
+
+            imgContainer.appendChild(img);
+            card.appendChild(header);
+            card.appendChild(imgContainer);
+
+            const caption = document.createElement('div');
+            caption.className = 'card-caption';
+            if (isTopRow) {
+                caption.textContent = `⬆️ Year button updates whole column (VD / LISA / SIG / SP / T)`;
+            } else {
+                caption.textContent = `Auto‑updates when top box year changes in this column`;
+            }
+            card.appendChild(caption);
+
+            // Attach zoom buttons
+            const { zoomInBtn, zoomOutBtn } = attachZoom(img, imgContainer);
+            zoomControlsDiv.appendChild(zoomInBtn);
+            zoomControlsDiv.appendChild(zoomOutBtn);
+
+            rowDiv.appendChild(card);
+
+            // Store reference
+            if (!images[col]) images[col] = [];
+            images[col][row] = img;
+        }
+        gridRoot.appendChild(rowDiv);
+    }
+</script>
+</body>
+</html>
